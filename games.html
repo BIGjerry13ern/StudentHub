@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Games</title>
+    <title>StudentHub - Games</title>
 
     <style>
         body {
@@ -11,10 +11,19 @@
             color: white;
         }
 
+        .game {
+            display: inline-block;
+            background: #222;
+            padding: 25px;
+            margin: 15px;
+            border-radius: 10px;
+            width: 200px;
+        }
+
         button {
-            padding: 15px 30px;
-            margin: 10px;
-            font-size: 18px;
+            padding: 12px 25px;
+            margin-top: 10px;
+            font-size: 16px;
             cursor: pointer;
         }
     </style>
@@ -22,18 +31,21 @@
 
 <body>
 
-    <h1>🎮 Games</h1>
+    <h1>🎮 StudentHub Games</h1>
+    <p>Original games made for StudentHub</p>
 
-    <p>My Games</p>
+    <div class="game">
+        <h2>Game 1</h2>
+        <p>Our first game!</p>
+        <button>Play</button>
+    </div>
 
-    <button>Game 1</button>
-    <button>Game 2</button>
-
-    <br><br>
+    <br>
 
     <button onclick="location.href='index.html'">
         🏠 Back Home
     </button>
 
 </body>
+</html>
 </html>
