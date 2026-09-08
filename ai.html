@@ -521,6 +521,17 @@
             }
         }
 
+
+        /* StudentHub AI advanced polish */
+        .aiStatusBar { display:flex; gap:8px; flex-wrap:wrap; padding:10px 22px 4px; }
+        .statusChip { border:1px solid #334153; background:linear-gradient(135deg,#18212c,#111820); color:#cbd5e1; border-radius:999px; padding:6px 10px; font-size:11px; box-shadow:0 2px 12px rgba(0,0,0,.15); }
+        .memorySummary { margin:10px 0 12px; padding:10px; border:1px solid #2c3948; border-radius:9px; background:#121a23; color:#9eabb9; font-size:12px; line-height:1.45; }
+        .thinkingMessage { opacity:.8; animation:studenthubPulse 1.2s ease-in-out infinite; }
+        @keyframes studenthubPulse { 0%,100%{opacity:.45} 50%{opacity:1} }
+        .sourceList { margin-top:12px; padding-top:10px; border-top:1px solid #2b3744; }
+        .sourceList a { display:block; color:#a9c7e8; text-decoration:none; font-size:12px; margin:5px 0; overflow-wrap:anywhere; }
+        .sourceList a:hover { text-decoration:underline; }
+
     </style>
 </head>
 
@@ -598,6 +609,10 @@
                     and saved study information in this browser.
                 </p>
 
+                <div id="memorySummary" class="memorySummary">
+                    Learning profile loading...
+                </div>
+
                 <button
                     class="memoryButton"
                     onclick="openMemorySettings()"
@@ -628,6 +643,14 @@
                     practice, and study help.
                 </p>
 
+            </div>
+
+
+            <div class="aiStatusBar">
+                <div class="statusChip">🧠 Deep Reasoning</div>
+                <div class="statusChip">🔎 Web Research</div>
+                <div class="statusChip">🗂️ Learning Memory</div>
+                <div class="statusChip">🎓 Adaptive Tutor</div>
             </div>
 
 
@@ -834,6 +857,9 @@
         ✔ Keeps local browser memory
         ✔ Supports research sources from the future backend
         ✔ Designed for a secure AI backend
+        ✔ Adaptive long-term learning profile
+        ✔ Deep-reasoning instruction layer
+        ✔ Web research and source display
 
         IMPORTANT
 
@@ -844,7 +870,7 @@
 
         The actual AI/web research system will later connect to:
 
-            const API_ENDPOINT = "/api/chat";
+            const API_ENDPOINT = "http://localhost:3000/api/chat";
 
         The backend will handle:
 
@@ -933,7 +959,7 @@
                     "Hey! I'm StudentHub AI.\n\n" +
                     "I’m designed to help you actually understand what you're studying — not just throw an answer at you.\n\n" +
                     "You can ask about mathematics, physics, science, history, programming, college-level subjects, research questions, and much more.\n\n" +
-                    "Web-grounded research and source citations will be handled by the secure backend when it is connected."
+                    "When the secure backend is running, I can use web research, deep reasoning, and your saved learning profile to adapt explanations."
 
             };
 
@@ -1008,36 +1034,30 @@
 
 
         function loadMemory() {
+            const defaults = {
+                profile: {
+                    preferredExplanationStyle: "adaptive",
+                    learningGoals: [],
+                    strengths: [],
+                    struggles: [],
+                    interests: [],
+                    currentSubjects: [],
+                    importantFacts: []
+                },
+                recentTopics: [],
+                masteredTopics: [],
+                reviewTopics: [],
+                lastUpdated: Date.now()
+            };
 
             try {
-
-                const saved =
-                    localStorage.getItem(
-                        MEMORY_KEY
-                    );
-
-                return saved
-                    ? JSON.parse(saved)
-                    : {
-
-                        enabled: true,
-
-                        notes: []
-
-                    };
-
+                const raw = localStorage.getItem(MEMORY_KEY);
+                if (!raw) return defaults;
+                const saved = JSON.parse(raw);
+                return { ...defaults, ...saved, profile: { ...defaults.profile, ...(saved.profile || {}) } };
             } catch {
-
-                return {
-
-                    enabled: true,
-
-                    notes: []
-
-                };
-
+                return defaults;
             }
-
         }
 
 
@@ -1618,111 +1638,70 @@
 
         async function sendQuestion() {
 
-            const text =
-                questionElement.value.trim();
+            const text = questionElement.value.trim();
+            if (!text) return;
 
+            const currentChat = getActiveChat();
+            if (!currentChat) return;
 
-            if (!text) {
-
-                return;
-
-            }
-
-
-            const currentChat =
-                getActiveChat();
-
-
-            if (!currentChat) {
-
-                return;
-
-            }
-
-
-            addMessageToScreen(
-                text,
-                "user"
-            );
-
-
-            saveMessage(
-                "user",
-                text
-            );
-
+            addMessageToScreen(text, "user");
+            saveMessage("user", text);
 
             questionElement.value = "";
-
             sendButton.disabled = true;
 
-
-            /*
-            TEMPORARY STATUS
-            */
-
             addMessageToScreen(
-
-                "The StudentHub AI backend is not connected yet. Your question has been saved to this conversation.\n\nThe next development stage will connect this interface to the actual AI, web research, source verification, and long-term account memory.",
-
-                "ai"
-
+                "🧠 Thinking deeply... checking the reasoning and using research when useful.",
+                "ai",
+                [],
+                true
             );
 
-
-            saveMessage(
-
-                "assistant",
-
-                "The StudentHub AI backend is not connected yet. Your question has been saved to this conversation.\n\nThe next development stage will connect this interface to the actual AI, web research, source verification, and long-term account memory."
-
-            );
-
-
-            /*
-            ========================================================
-            FUTURE BACKEND REQUEST
-
-            This is intentionally disabled until the backend exists.
-
-            const response = await fetch(
-                API_ENDPOINT,
-                {
+            try {
+                const response = await fetch(API_ENDPOINT, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        message: text,
+                        messages: currentChat.messages,
                         subject: subjectElement.value,
                         mode: modeElement.value,
-                        conversation: currentChat.messages,
                         memory: memory
                     })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || "AI server error");
                 }
-            );
 
-            const data = await response.json();
+                const thinking = chatElement.querySelector(".thinkingMessage");
+                if (thinking) thinking.remove();
 
-            addMessageToScreen(
-                data.answer,
-                "ai",
-                data.sources || []
-            );
+                const reply = data.reply || "The AI returned no response.";
+                addMessageToScreen(reply, "ai", data.sources || []);
+                saveMessage("assistant", reply, data.sources || []);
 
-            saveMessage(
-                "assistant",
-                data.answer,
-                data.sources || []
-            );
+                if (data.memory) {
+                    memory = mergeLearningMemory(memory, data.memory);
+                    saveMemory();
+                }
 
-            ========================================================
-            */
+                renderMemorySummary();
+                statusElement.textContent = "StudentHub AI • Ready";
 
-            sendButton.disabled = false;
-
-            questionElement.focus();
-
+            } catch (error) {
+                console.error("StudentHub AI error:", error);
+                const thinking = chatElement.querySelector(".thinkingMessage");
+                if (thinking) thinking.remove();
+                addMessageToScreen(
+                    "⚠️ I couldn't connect to the StudentHub AI backend.\n\nMake sure the StudentHub Node.js server is running on this computer.",
+                    "ai"
+                );
+                statusElement.textContent = "Connection error • Check backend";
+            } finally {
+                sendButton.disabled = false;
+                questionElement.focus();
+            }
         }
 
 
@@ -1850,6 +1829,7 @@
         */
 
         initialize();
+        renderMemorySummary();
 
     </script>
 
