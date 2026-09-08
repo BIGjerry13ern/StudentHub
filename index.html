@@ -1,41 +1,180 @@
+```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>School Hub</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>StudentHub</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial;
-            text-align: center;
-            background: #111;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0b0f19;
             color: white;
+            min-height: 100vh;
+        }
+
+        header {
+            padding: 60px 20px 30px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 52px;
+            margin-bottom: 10px;
         }
 
         h1 {
-            margin-top: 50px;
+            margin: 0;
+            font-size: 42px;
+        }
+
+        .subtitle {
+            color: #aab3c5;
+            font-size: 18px;
+            margin-top: 12px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin: 25px 0;
+            font-size: 28px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #151b29;
+            border: 1px solid #293247;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #52658a;
+        }
+
+        .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .card h2 {
+            margin: 10px 0;
+        }
+
+        .card p {
+            color: #aab3c5;
+            line-height: 1.5;
         }
 
         button {
-            padding: 15px 30px;
-            margin: 10px;
-            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            padding: 13px 24px;
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
+            background: #ffffff;
+            color: #111827;
+        }
+
+        button:hover {
+            background: #dfe5ef;
+        }
+
+        footer {
+            text-align: center;
+            color: #68738a;
+            padding: 45px 20px 25px;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 34px;
+            }
+
+            .logo {
+                font-size: 42px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <h1>🎮 School Hub</h1>
-    <p>Games + Study Tools</p>
+    <header>
+        <div class="logo">🎓</div>
+        <h1>StudentHub</h1>
+        <p class="subtitle">Learn. Practice. Explore.</p>
+    </header>
 
-    <button onclick="location.href='games.html'">
-        🎮 Games
-    </button>
+    <main class="container">
 
-    <button onclick="alert('Homework AI coming soon!')">
-        🧠 Homework AI
-    </button>
+        <h2 class="section-title">What do you want to do?</h2>
+
+        <div class="cards">
+
+            <!-- Games -->
+            <div class="card">
+                <div class="icon">🎮</div>
+
+                <h2>Games</h2>
+
+                <p>
+                    Play original games made for StudentHub
+                    while practicing problem-solving and skills.
+                </p>
+
+                <button onclick="location.href='games.html'">
+                    Open Games
+                </button>
+            </div>
+
+            <!-- Homework AI -->
+            <div class="card">
+                <div class="icon">🧠</div>
+
+                <h2>Homework AI</h2>
+
+                <p>
+                    Get help understanding lessons, solving problems,
+                    researching topics, and learning difficult concepts.
+                </p>
+
+                <button onclick="location.href='ai.html'">
+                    Open Homework AI
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer>
+        StudentHub • Built for learning
+    </footer>
 
 </body>
 </html>
+```
