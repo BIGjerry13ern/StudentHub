@@ -1,54 +1,497 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>StudentHub - Games</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>StudentHub - Dodge</title>
 
     <style>
-        body {
-            font-family: Arial;
-            text-align: center;
-            background: #111;
-            color: white;
+        * {
+            box-sizing: border-box;
         }
 
-        .game {
-            display: inline-block;
-            background: #222;
-            padding: 25px;
-            margin: 15px;
-            border-radius: 10px;
-            width: 200px;
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 20px 0 5px;
+        }
+
+        #instructions {
+            margin-top: 5px;
+            color: #bbb;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 400px;
+            max-width: 95vw;
+            margin: 20px auto;
+        }
+
+        canvas {
+            display: block;
+            width: 400px;
+            max-width: 95vw;
+            height: 500px;
+            background: #181818;
+            border: 3px solid white;
+            border-radius: 8px;
+        }
+
+        #gameOverScreen {
+            display: none;
+            position: absolute;
+            left: 3px;
+            top: 3px;
+            width: calc(100% - 6px);
+            height: calc(100% - 6px);
+
+            background: rgba(0, 0, 0, 0.8);
+
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+
+            border-radius: 5px;
+        }
+
+        #gameOverScreen h2 {
+            font-size: 40px;
+            margin: 10px;
+        }
+
+        #finalScore {
+            font-size: 22px;
+            margin: 10px;
         }
 
         button {
-            padding: 12px 25px;
-            margin-top: 10px;
-            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 22px;
+            margin: 8px;
+            font-size: 17px;
             cursor: pointer;
+        }
+
+        #restartButton {
+            background: #00d9ff;
+            color: black;
+        }
+
+        #backButton {
+            background: #333;
+            color: white;
+        }
+
+        button:hover {
+            transform: scale(1.05);
         }
     </style>
 </head>
 
 <body>
 
-    <h1>🎮 StudentHub Games</h1>
-    <p>Original games made for StudentHub</p>
+    <h1>🎮 Dodge</h1>
 
-    <div class="game">
-        <h2>Dodge</h2>
-        <p>Avoid the falling blocks!</p>
+    <p id="instructions">
+        Use ← and → to move. Dodge the falling blocks!
+    </p>
 
-        <button onclick="location.href='dodge.html'">
-            Play
-        </button>
+    <div id="gameContainer">
+
+        <canvas id="game" width="400" height="500"></canvas>
+
+        <div id="gameOverScreen">
+
+            <h2>GAME OVER</h2>
+
+            <p id="finalScore">
+                Score: 0
+            </p>
+
+            <button id="restartButton">
+                🔄 Play Again
+            </button>
+
+        </div>
+
     </div>
 
-    <br>
-
-    <button onclick="location.href='index.html'">
-        🏠 Back Home
+    <button id="backButton" onclick="location.href='games.html'">
+        ← Back to Games
     </button>
+
+
+    <script>
+
+        // =========================
+        // GET THE GAME CANVAS
+        // =========================
+
+        const canvas = document.getElementById("game");
+        const ctx = canvas.getContext("2d");
+
+        const gameOverScreen =
+            document.getElementById("gameOverScreen");
+
+        const finalScore =
+            document.getElementById("finalScore");
+
+        const restartButton =
+            document.getElementById("restartButton");
+
+
+        // =========================
+        // PLAYER
+        // =========================
+
+        const player = {
+            x: 180,
+            y: 440,
+            width: 40,
+            height: 40,
+            speed: 7
+        };
+
+
+        // =========================
+        // GAME VARIABLES
+        // =========================
+
+        let obstacles = [];
+
+        let score = 0;
+
+        let gameOver = false;
+
+        let lastObstacleTime = 0;
+
+        let obstacleDelay = 700;
+
+        let keys = {};
+
+
+        // =========================
+        // KEYBOARD CONTROLS
+        // =========================
+
+        document.addEventListener("keydown", function(event) {
+
+            keys[event.key] = true;
+
+            if (
+                event.key === "ArrowLeft" ||
+                event.key === "ArrowRight"
+            ) {
+                event.preventDefault();
+            }
+
+        });
+
+
+        document.addEventListener("keyup", function(event) {
+
+            keys[event.key] = false;
+
+        });
+
+
+        // =========================
+        // CREATE OBSTACLE
+        // =========================
+
+        function createObstacle() {
+
+            const size = 30 + Math.random() * 25;
+
+            const obstacle = {
+
+                x: Math.random() * (canvas.width - size),
+
+                y: -size,
+
+                width: size,
+
+                height: size,
+
+                speed: 3 + Math.random() * 3
+
+            };
+
+            obstacles.push(obstacle);
+
+        }
+
+
+        // =========================
+        // COLLISION DETECTION
+        // =========================
+
+        function collision(a, b) {
+
+            return (
+
+                a.x < b.x + b.width &&
+
+                a.x + a.width > b.x &&
+
+                a.y < b.y + b.height &&
+
+                a.y + a.height > b.y
+
+            );
+
+        }
+
+
+        // =========================
+        // UPDATE GAME
+        // =========================
+
+        function update(time) {
+
+            if (gameOver) {
+                return;
+            }
+
+
+            // MOVE LEFT
+
+            if (
+                (keys["ArrowLeft"] || keys["a"]) &&
+                player.x > 0
+            ) {
+
+                player.x -= player.speed;
+
+            }
+
+
+            // MOVE RIGHT
+
+            if (
+                (keys["ArrowRight"] || keys["d"]) &&
+                player.x < canvas.width - player.width
+            ) {
+
+                player.x += player.speed;
+
+            }
+
+
+            // CREATE NEW OBSTACLES
+
+            if (time - lastObstacleTime > obstacleDelay) {
+
+                createObstacle();
+
+                lastObstacleTime = time;
+
+            }
+
+
+            // MOVE OBSTACLES
+
+            for (let obstacle of obstacles) {
+
+                obstacle.y += obstacle.speed;
+
+
+                // CHECK COLLISION
+
+                if (collision(player, obstacle)) {
+
+                    endGame();
+
+                    return;
+
+                }
+
+            }
+
+
+            // REMOVE OBSTACLES THAT LEFT THE SCREEN
+
+            obstacles = obstacles.filter(function(obstacle) {
+
+                return obstacle.y < canvas.height + 50;
+
+            });
+
+
+            // INCREASE SCORE
+
+            score += 0.1;
+
+
+            // MAKE GAME HARDER
+
+            if (score > 100) {
+
+                obstacleDelay = 600;
+
+            }
+
+            if (score > 250) {
+
+                obstacleDelay = 500;
+
+            }
+
+            if (score > 500) {
+
+                obstacleDelay = 400;
+
+            }
+
+        }
+
+
+        // =========================
+        // DRAW GAME
+        // =========================
+
+        function draw() {
+
+            // CLEAR SCREEN
+
+            ctx.clearRect(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+
+            // BACKGROUND
+
+            ctx.fillStyle = "#181818";
+
+            ctx.fillRect(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+
+            // PLAYER
+
+            ctx.fillStyle = "#00e5ff";
+
+            ctx.fillRect(
+                player.x,
+                player.y,
+                player.width,
+                player.height
+            );
+
+
+            // OBSTACLES
+
+            ctx.fillStyle = "#ff3333";
+
+            for (let obstacle of obstacles) {
+
+                ctx.fillRect(
+                    obstacle.x,
+                    obstacle.y,
+                    obstacle.width,
+                    obstacle.height
+                );
+
+            }
+
+
+            // SCORE
+
+            ctx.fillStyle = "white";
+
+            ctx.font = "20px Arial";
+
+            ctx.fillText(
+                "Score: " + Math.floor(score),
+                15,
+                30
+            );
+
+        }
+
+
+        // =========================
+        // GAME OVER
+        // =========================
+
+        function endGame() {
+
+            gameOver = true;
+
+            finalScore.textContent =
+                "Score: " + Math.floor(score);
+
+            gameOverScreen.style.display = "flex";
+
+        }
+
+
+        // =========================
+        // RESTART GAME
+        // =========================
+
+        function restartGame() {
+
+            player.x = 180;
+
+            obstacles = [];
+
+            score = 0;
+
+            gameOver = false;
+
+            obstacleDelay = 700;
+
+            lastObstacleTime = 0;
+
+            gameOverScreen.style.display = "none";
+
+        }
+
+
+        restartButton.addEventListener(
+            "click",
+            restartGame
+        );
+
+
+        // =========================
+        // MAIN GAME LOOP
+        // =========================
+
+        function gameLoop(time) {
+
+            update(time);
+
+            draw();
+
+            requestAnimationFrame(gameLoop);
+
+        }
+
+
+        // START GAME
+
+        requestAnimationFrame(gameLoop);
+
+    </script>
 
 </body>
 </html>
-
