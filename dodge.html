@@ -1,165 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>StudentHub - Dodge</title>
+    <title>StudentHub - Games</title>
 
     <style>
         body {
-            margin: 0;
-            background: #111;
-            color: white;
             font-family: Arial;
             text-align: center;
+            background: #111;
+            color: white;
         }
 
-        canvas {
+        .game {
+            display: inline-block;
             background: #222;
-            display: block;
-            margin: 20px auto;
-            border: 2px solid white;
+            padding: 25px;
+            margin: 15px;
+            border-radius: 10px;
+            width: 200px;
         }
 
         button {
-            padding: 10px 20px;
+            padding: 12px 25px;
+            margin-top: 10px;
             font-size: 16px;
+            cursor: pointer;
         }
     </style>
 </head>
 
 <body>
 
-    <h1>🎮 Dodge</h1>
-    <p>Use the arrow keys to move!</p>
+    <h1>🎮 StudentHub Games</h1>
+    <p>Original games made for StudentHub</p>
 
-    <canvas id="game" width="400" height="500"></canvas>
+    <div class="game">
+        <h2>Dodge</h2>
+        <p>Avoid the falling blocks!</p>
 
-    <button onclick="location.href='games.html'">
-        ← Back to Games
+        <button onclick="location.href='dodge.html'">
+            Play
+        </button>
+    </div>
+
+    <br>
+
+    <button onclick="location.href='index.html'">
+        🏠 Back Home
     </button>
-
-    <script>
-        const canvas = document.getElementById("game");
-        const ctx = canvas.getContext("2d");
-
-        let player = {
-            x: 180,
-            y: 450,
-            width: 40,
-            height: 40,
-            speed: 6
-        };
-
-        let obstacles = [];
-        let score = 0;
-        let gameOver = false;
-
-        let keys = {};
-
-        document.addEventListener("keydown", function(event) {
-            keys[event.key] = true;
-
-            if (gameOver && event.key === "Enter") {
-                location.reload();
-            }
-        });
-
-        document.addEventListener("keyup", function(event) {
-            keys[event.key] = false;
-        });
-
-        function createObstacle() {
-            obstacles.push({
-                x: Math.random() * 360,
-                y: -40,
-                width: 40,
-                height: 40,
-                speed: 3 + Math.random() * 3
-            });
-        }
-
-        function collision(a, b) {
-            return (
-                a.x < b.x + b.width &&
-                a.x + a.width > b.x &&
-                a.y < b.y + b.height &&
-                a.y + a.height > b.y
-            );
-        }
-
-        function update() {
-
-            if (gameOver) return;
-
-            if (keys["ArrowLeft"] && player.x > 0) {
-                player.x -= player.speed;
-            }
-
-            if (keys["ArrowRight"] && player.x < canvas.width - player.width) {
-                player.x += player.speed;
-            }
-
-            for (let obstacle of obstacles) {
-                obstacle.y += obstacle.speed;
-
-                if (collision(player, obstacle)) {
-                    gameOver = true;
-                }
-            }
-
-            obstacles = obstacles.filter(obstacle => obstacle.y < canvas.height);
-
-            score++;
-        }
-
-        function draw() {
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Player
-            ctx.fillStyle = "cyan";
-            ctx.fillRect(
-                player.x,
-                player.y,
-                player.width,
-                player.height
-            );
-
-            // Obstacles
-            ctx.fillStyle = "red";
-
-            for (let obstacle of obstacles) {
-                ctx.fillRect(
-                    obstacle.x,
-                    obstacle.y,
-                    obstacle.width,
-                    obstacle.height
-                );
-            }
-
-            // Score
-            ctx.fillStyle = "white";
-            ctx.font = "20px Arial";
-            ctx.fillText("Score: " + Math.floor(score / 10), 10, 25);
-
-            if (gameOver) {
-                ctx.font = "35px Arial";
-                ctx.fillText("GAME OVER", 105, 230);
-
-                ctx.font = "18px Arial";
-                ctx.fillText("Press ENTER to restart", 115, 270);
-            }
-        }
-
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-
-        setInterval(createObstacle, 700);
-
-        gameLoop();
-    </script>
 
 </body>
 </html>
